@@ -1,21 +1,34 @@
-
 [project]
 name = "tiny-market"
 authors = []
+description = ""
 telemetry = true
-cache_dir = "./.requirements"
+cache_dir = "/Users/aakanksha/WORK/clarity-camp/tiny-market/./.requirements"
+boot_contracts = ["pox", "costs-v2", "bns"]
 
-# [contracts.counter]
-# path = "contracts/counter.clar"
+[[project.requirements]]
+contract_id = "SP2PABAF9FTAJYNFZH93XENAJ8FVY99RRM50D2JG9.nft-trait"
+
+[[project.requirements]]
+contract_id = "SP3FBR2AGK5H9QBDH3EEN6DF8EK8JY7RX8QJ5SVTE.sip-010-trait-ft-standard"
+[contracts.ft-token]
+path = "contracts/ft-token.clar"
+
+[contracts.nft-token]
+path = "contracts/nft-token.clar"
+
+[contracts.tiny-market]
+path = "contracts/tiny-market.clar"
+
+[repl]
+costs_version = 2
+parser_version = 2
 
 [repl.analysis]
 passes = ["check_checker"]
-check_checker = { trusted_sender = false, trusted_caller = false, callee_filter = false }
 
-# Check-checker settings:
-# trusted_sender: if true, inputs are trusted after tx_sender has been checked.
-# trusted_caller: if true, inputs are trusted after contract-caller has been checked.
-# callee_filter: if true, untrusted data may be passed into a private function without a
-# warning, if it gets checked inside. This check will also propagate up to the
-# caller.
-# More informations: https://www.hiro.so/blog/new-safety-checks-in-clarinet
+[repl.analysis.check_checker]
+strict = false
+trusted_sender = false
+trusted_caller = false
+callee_filter = false
