@@ -1,0 +1,42 @@
+[project]
+name = "dex"
+authors = []
+description = ""
+telemetry = true
+boot_contracts = ["pox", "costs-v2", "bns"]
+
+[[project.requirements]]
+contract_id = "SP466FNC0P7JWTNM2R9T199QRZN1MYEDTAR0KP27.miamicoin-token"
+
+[project.cache_location]
+path = ".requirements"
+[contracts.dex]
+path = "contracts/dex.clar"
+
+[contracts.dex_1]
+path = "contracts/dex_1.clar"
+
+[contracts.dex_2]
+path = "contracts/dex_2.clar"
+
+[contracts.lp-token]
+path = "contracts/lp-token.clar"
+
+[contracts.token-austin]
+path = "contracts/external/token-austin.clar"
+
+[contracts.traits]
+path = "contracts/external/traits.clar"
+
+[repl]
+costs_version = 2
+parser_version = 2
+
+[repl.analysis]
+passes = ["check_checker"]
+
+[repl.analysis.check_checker]
+strict = false
+trusted_sender = false
+trusted_caller = false
+callee_filter = false
