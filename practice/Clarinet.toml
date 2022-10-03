@@ -1,0 +1,43 @@
+[project]
+name = "practice"
+authors = []
+description = ""
+telemetry = true
+requirements = []
+boot_contracts = ["pox", "costs-v2", "bns"]
+
+[project.cache_location]
+path = "/Users/aakanksha/.clarinet/cache"
+[contracts.controlflows]
+path = "contracts/controlflows.clar"
+
+[contracts.divider-trait]
+path = "contracts/divider-trait.clar"
+
+[contracts.functions]
+path = "contracts/functions.clar"
+
+[contracts.maths-util]
+path = "contracts/maths-util.clar"
+
+[contracts.multiplier-trait]
+path = "contracts/multiplier-trait.clar"
+
+[contracts.practice]
+path = "contracts/practice.clar"
+
+[contracts.storing-data]
+path = "contracts/storing-data.clar"
+
+[repl]
+costs_version = 2
+parser_version = 2
+
+[repl.analysis]
+passes = ["check_checker"]
+
+[repl.analysis.check_checker]
+strict = true
+trusted_sender = false
+trusted_caller = false
+callee_filter = false
