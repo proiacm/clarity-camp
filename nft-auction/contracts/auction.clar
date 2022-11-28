@@ -16,7 +16,7 @@
 (define-constant ERR_AUCTION_ENDED (err u103))
 (define-constant ERR_BID_LOWER_THAN_HIGHEST (err u104))
 (define-constant ERR_START_BID_LOWER_THAN_ZERO (err u105))
-(define-constant ERR_MIN_LOWER_LIMIT_OF_AUCTION_DAYS (err u106))
+(define-constant ERR_INVALID_ENDS_AT (err u106))
 (define-constant ERR_NO_BID_PLACED (err u107))
 (define-constant ERR_CANNOT_BID_OWN_NFT (err u108))
 (define-constant ERR_CANNOT_WITHDRAW_ON_HIGHEST_BID (err u109))
@@ -33,7 +33,7 @@
 ;;
 
 ;; Seller starts the auction with a starting bid and no. of days to run the auction
-(define-public (start (nft <nft-token>) (nft-id uint) (starting-bid uint) (days uint)) 
+(define-public (start (nft <nft-token>) (nft-id uint) (starting-bid uint) (endsAt uint)) 
     (let
         (
             (seller tx-sender)
@@ -43,10 +43,10 @@
         (asserts! (> starting-bid u0) ERR_START_BID_LOWER_THAN_ZERO)
         (asserts! (is-none (map-get? Started { nft: nft-contract, nft-id: nft-id })) ERR_AUCTION_ALREADY_STARTED)
         (asserts! (and (is-some nft-owner) (is-eq (unwrap! nft-owner ERR_NOT_SELLER) tx-sender)) ERR_NOT_SELLER)
-        (asserts! (> days u0) ERR_MIN_LOWER_LIMIT_OF_AUCTION_DAYS)
+        (asserts! (> endsAt block-height) ERR_INVALID_ENDS_AT)
 
         (map-set Started { nft: nft-contract, nft-id: nft-id } true)
-        (map-set EndsAt { nft: nft-contract, nft-id: nft-id } (+ block-height (* days u144)))
+        (map-set EndsAt { nft: nft-contract, nft-id: nft-id } endsAt)
         (map-set HighestBids {nft: nft-contract, nft-id: nft-id} { bidder: tx-sender, bid: starting-bid })
         (map-set Seller {nft: nft-contract, nft-id: nft-id} tx-sender)
 

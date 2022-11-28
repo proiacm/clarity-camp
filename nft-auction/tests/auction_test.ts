@@ -42,7 +42,7 @@ Clarinet.test({
             [types.principal(deployer.concat(".wl")), types.uint(1)],
             auctioneer
         )
-        assertEquals(auctionEndsAt.result, types.some("u1441"));
+        assertEquals(auctionEndsAt.result, types.some("u10"));
 
         // check that when you start the highest bid is placed by the auctioneer
         const auctionHighestBid = chain.callReadOnlyFn(
@@ -456,7 +456,7 @@ Clarinet.test({
                 bidder1
             )
         ]);
-        chain.mineEmptyBlockUntil(1440)
+        chain.mineEmptyBlockUntil(9)
 
         let block2 = chain.mineBlock([
             Tx.contractCall(
@@ -467,7 +467,7 @@ Clarinet.test({
             )
         ]);
         assertEquals(block2.receipts.length, 1);
-        assertEquals(block2.height, 1441);
+        assertEquals(block2.height, 10);
 
         block2.receipts[0].result.expectOk();
     },
