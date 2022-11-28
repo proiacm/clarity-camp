@@ -38,17 +38,17 @@
         (
             (seller tx-sender)
             (nft-owner (try! (contract-call? nft get-owner nft-id)))
-            (nft-token (contract-of nft))
+            (nft-contract (contract-of nft));; principal 
         )
         (asserts! (> starting-bid u0) ERR_START_BID_LOWER_THAN_ZERO)
-        (asserts! (is-none (map-get? Started { nft: nft-token, nft-id: nft-id })) ERR_AUCTION_ALREADY_STARTED)
+        (asserts! (is-none (map-get? Started { nft: nft-contract, nft-id: nft-id })) ERR_AUCTION_ALREADY_STARTED)
         (asserts! (and (is-some nft-owner) (is-eq (unwrap! nft-owner ERR_NOT_SELLER) tx-sender)) ERR_NOT_SELLER)
         (asserts! (> days u0) ERR_MIN_LOWER_LIMIT_OF_AUCTION_DAYS)
 
-        (map-set Started { nft: nft-token, nft-id: nft-id } true)
-        (map-set EndsAt { nft: nft-token, nft-id: nft-id } (+ block-height (* days u144)))
-        (map-set HighestBids {nft: nft-token, nft-id: nft-id} { bidder: tx-sender, bid: starting-bid })
-        (map-set Seller {nft: nft-token, nft-id: nft-id} tx-sender)
+        (map-set Started { nft: nft-contract, nft-id: nft-id } true)
+        (map-set EndsAt { nft: nft-contract, nft-id: nft-id } (+ block-height (* days u144)))
+        (map-set HighestBids {nft: nft-contract, nft-id: nft-id} { bidder: tx-sender, bid: starting-bid })
+        (map-set Seller {nft: nft-contract, nft-id: nft-id} tx-sender)
 
         (try! (as-contract (contract-call? nft transfer nft-id seller tx-sender)))
         
@@ -60,16 +60,16 @@
 (define-public (bid (nft <nft-token>) (nft-id uint) (amount uint)) 
     (let 
         (
-            (nft-token (contract-of nft))
-            (nft-seller (unwrap! (map-get? Seller { nft: nft-token, nft-id: nft-id }) ERR_AUCTION_NOT_STARTED))
+            (nft-contract (contract-of nft))
+            (nft-seller (unwrap! (map-get? Seller { nft: nft-contract, nft-id: nft-id }) ERR_AUCTION_NOT_STARTED))
         )
         (asserts! (not (is-eq nft-seller tx-sender)) ERR_CANNOT_BID_OWN_NFT)
-        (asserts! (is-some (map-get? Started { nft: nft-token, nft-id: nft-id })) ERR_AUCTION_NOT_STARTED)
-        (asserts! (< block-height (unwrap! (map-get? EndsAt { nft: nft-token, nft-id: nft-id }) ERR_AUCTION_ENDED) ) ERR_AUCTION_ENDED)
-        (asserts! (> amount (get bid (unwrap! (map-get? HighestBids { nft: nft-token, nft-id: nft-id }) ERR_AUCTION_ENDED))) ERR_BID_LOWER_THAN_HIGHEST)
+        (asserts! (is-some (map-get? Started { nft: nft-contract, nft-id: nft-id })) ERR_AUCTION_NOT_STARTED)
+        (asserts! (< block-height (unwrap! (map-get? EndsAt { nft: nft-contract, nft-id: nft-id }) ERR_AUCTION_ENDED) ) ERR_AUCTION_ENDED)
+        (asserts! (> amount (get bid (unwrap! (map-get? HighestBids { nft: nft-contract, nft-id: nft-id }) ERR_AUCTION_ENDED))) ERR_BID_LOWER_THAN_HIGHEST)
 
-        (map-set HighestBids {nft: nft-token, nft-id: nft-id} { bidder: tx-sender, bid: amount })
-        (map-set Bids {nft: nft-token, nft-id: nft-id, bidder: tx-sender} amount)
+        (map-set HighestBids {nft: nft-contract, nft-id: nft-id} { bidder: tx-sender, bid: amount })
+        (map-set Bids {nft: nft-contract, nft-id: nft-id, bidder: tx-sender} amount)
         (try! (stx-transfer? amount tx-sender CONTRACT_ADDRESS))
         (ok u200)
     )
@@ -80,13 +80,14 @@
     (let
         (
             (sender tx-sender)
-            (highest-bidder (unwrap! (map-get? HighestBids {nft: (contract-of nft), nft-id: nft-id}) ERR_NO_BID_PLACED))
-            (bid-placed (unwrap! (map-get? Bids {nft: (contract-of nft), nft-id: nft-id, bidder: tx-sender}) ERR_NO_BID_PLACED))
+            (nft-contract (contract-of nft))
+            (highest-bidder (unwrap! (map-get? HighestBids {nft: nft-contract, nft-id: nft-id}) ERR_NO_BID_PLACED))
+            (bid-placed (unwrap! (map-get? Bids {nft: nft-contract, nft-id: nft-id, bidder: tx-sender}) ERR_NO_BID_PLACED))
         )
         (asserts! (not (is-eq (get bidder highest-bidder) sender)) ERR_CANNOT_WITHDRAW_ON_HIGHEST_BID)
 
         (try! (as-contract (stx-transfer? bid-placed CONTRACT_ADDRESS sender)))
-        (map-delete Bids {nft: (contract-of nft), nft-id: nft-id, bidder: sender})
+        (map-delete Bids {nft: nft-contract, nft-id: nft-id, bidder: sender})
         
         (ok true)
     )
@@ -96,13 +97,15 @@
 (define-public (end (nft <nft-token>) (nft-id uint)) 
     (let
         (
-            (ends-at (unwrap! (map-get? EndsAt {nft: (contract-of nft), nft-id: nft-id}) ERR_AUCTION_NOT_STARTED))
-            (highest-bidder (unwrap! (map-get? HighestBids {nft: (contract-of nft), nft-id: nft-id}) ERR_NO_BID_PLACED))
-            (nft-seller (unwrap! (map-get? Seller {nft: (contract-of nft), nft-id: nft-id}) ERR_NO_BID_PLACED))
+            (nft-contract (contract-of nft))
+            (ends-at (unwrap! (map-get? EndsAt {nft: nft-contract, nft-id: nft-id}) ERR_AUCTION_NOT_STARTED))
+            (highest-bidder (unwrap! (map-get? HighestBids {nft: nft-contract, nft-id: nft-id}) ERR_NO_BID_PLACED))
+            (nft-seller (unwrap! (map-get? Seller {nft: nft-contract, nft-id: nft-id}) ERR_NO_BID_PLACED))
+
         )
         (asserts! (<= ends-at block-height) ERR_AUCTION_NOT_STARTED)
         
-        (map-set Started { nft:  (contract-of nft), nft-id: nft-id } false)
+        (map-set Started { nft:  nft-contract, nft-id: nft-id } false)
         (if (is-eq (get bidder highest-bidder) nft-seller)
             (try! (as-contract (contract-call? nft transfer nft-id CONTRACT_ADDRESS nft-seller)))
             (begin
