@@ -1,5 +1,5 @@
 
-import { Clarinet, Tx, Chain, Account, types } from 'https://deno.land/x/clarinet@v0.31.0/index.ts';
+import { Clarinet, Tx, Chain, Account, types } from 'https://deno.land/x/clarinet@v1.0.6/index.ts';
 import { assertEquals, assertNotEquals, assertStringIncludes } from 'https://deno.land/std@0.90.0/testing/asserts.ts';
 
 Clarinet.test({
@@ -42,7 +42,7 @@ Clarinet.test({
             [types.principal(deployer.concat(".wl")), types.uint(1)],
             auctioneer
         )
-        assertEquals(auctionEndsAt.result, types.some("u1441"));
+        assertEquals(auctionEndsAt.result, types.some("u10"));
 
         // check that when you start the highest bid is placed by the auctioneer
         const auctionHighestBid = chain.callReadOnlyFn(
@@ -89,7 +89,7 @@ Clarinet.test({
         assertEquals(block.receipts.length, 2);
         assertEquals(block.height, 2);
 
-        block.receipts[1].result.expectErr();
+        block.receipts[1].result.expectErr().expectUint(105)
 
         // check that auction is not started
         const auctionStarted = chain.callReadOnlyFn(
@@ -128,7 +128,7 @@ Clarinet.test({
         assertEquals(block.receipts.length, 2);
         assertEquals(block.height, 2);
 
-        block.receipts[1].result.expectErr();
+        block.receipts[1].result.expectErr().expectUint(106)
 
         // check that auction is not started
         const auctionStarted = chain.callReadOnlyFn(
@@ -456,7 +456,7 @@ Clarinet.test({
                 bidder1
             )
         ]);
-        chain.mineEmptyBlockUntil(1440)
+        chain.mineEmptyBlockUntil(9)
 
         let block2 = chain.mineBlock([
             Tx.contractCall(
@@ -467,7 +467,7 @@ Clarinet.test({
             )
         ]);
         assertEquals(block2.receipts.length, 1);
-        assertEquals(block2.height, 1441);
+        assertEquals(block2.height, 10);
 
         block2.receipts[0].result.expectOk();
     },
